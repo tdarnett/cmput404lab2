@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import socket
-import os
+import os, select
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # This is how we reuse the port
 
-server_socket.bind(('0.0.0.0', 7000)) # We must bind the port so other machines can connect
+server_socket.bind(('0.0.0.0', 7002)) # We must bind the port so other machines can connect
 # We cannot use port 80 (or anything less that 1024) unless we are root
 # ('0.0.0.0' means we are listening on any address)
 server_socket.listen(5) # OS should listen up to 5 incoming connections in the queue, otherwise start rejecting
@@ -41,8 +41,10 @@ while True:
             if part:
                 client_socket.sendall(part)
                 request.extend(part)
-            else:
+            elif part is None:
                 break
+            else:
+                exit(0)
 
         if len(request) > 0:
             print request
@@ -60,10 +62,20 @@ while True:
             if part:
                 incoming_socket.sendall(part)
                 response.extend(part)
-            else:
+            elif part is None:
                 break
+            else:
+                exit(0)
 
         if len(response) > 0:
             print response
+
+        # fixes busy waiting problem
+        select.select(
+            [incoming_socket, client_socket], # read
+            [], # write
+            [incoming_socket, client_socket], # exceptions
+            1.0 # timeout
+        )
 
 #     Non blocking socket IO says 'dont pause on the receive lines'
