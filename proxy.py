@@ -2,6 +2,8 @@
 import socket
 import os, select
 
+# from joshua2ua github (repo: cmput404w17lab2) https://github.com/joshua2ua/cmput404w17lab2/blob/master/proxy.py on Jan 17, 2017
+
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # This is how we reuse the port
 
